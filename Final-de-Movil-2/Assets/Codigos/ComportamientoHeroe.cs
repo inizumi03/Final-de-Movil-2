@@ -7,99 +7,123 @@ using UnityEngine;
 public class AnimacionConPuntos
 {
     public string nombreAnimacion;
-    public int puntos;
-    public float duracion;
+    public int puntaje;
 }
 public class ComportamientoHeroe : MonoBehaviour
 {
-    [Header("Animaciones configurables")]
-    public List<AnimacionConPuntos> animaciones = new List<AnimacionConPuntos>();
+    [Header("Animaciones y puntos")]
+    public List<string> nombresAnimaciones;    // Idle 1, Idle 2, Animacion movimiento, Animacion al salir
+    public List<int> puntosAnimaciones;        // Puntos asociados a cada animacion (mismo orden)
 
     [Header("Movimiento")]
-    public bool moverHeroe = false;
-    public List<Transform> puntosDestino;
-    public float velocidadMovimiento = 2f;
-    public string animacionMovimiento = "Caminar";
-    public int puntosAnimacionMovimiento = 5;
+    public bool activarMovimiento = true;
+    public Transform[] puntosMovimiento;
+    public float velocidad = 3f;
+    public Color colorGizmo = Color.cyan;
+    public float radioZona = 5f;               // Radio de la zona donde el jugador activa movimiento
 
-    [Header("Zona de activación (Gizmos)")]
-    public Vector3 centroZona = Vector3.zero;
-    public float radioZona = 5f;
-    public Color colorZona = Color.green;
-
-    private Transform jugador;
+    private int indiceActual = 0;
+    private bool moviendose = false;
     private Animator animator;
-    private int indiceDestino = 0;
-    private bool movimientoActivo = false;
-    private bool animacionPorFrecuenciaActiva = false;
 
-    private bool heroeFotografiado = false;
-    public int GetPuntosActuales() => heroeFotografiado ? 0 : puntosActuales;
-    private int puntosActuales = 0;
+    // Referencia al jugador para medir distancia (o usar trigger colider)
+    public Transform jugador;
+
+    // Sistema tiempo para cambio de animaciones idle
+    private int indiceIdle = 0;
+    public float tiempoCambioIdle = 3f;
+    private float contadorTiempoIdle = 0f;
+
+    private bool jugadorEnZona = false;
 
     void Start()
     {
-        jugador = GameObject.FindGameObjectWithTag("Player").transform;
         animator = GetComponent<Animator>();
-        if (!moverHeroe)
-            StartCoroutine(ReproducirAnimacionesPorFrecuencia());
+        contadorTiempoIdle = tiempoCambioIdle;
     }
 
     void Update()
     {
-        if (moverHeroe && !movimientoActivo && EstaJugadorEnZona())
+        if (activarMovimiento && jugador != null)
         {
-            movimientoActivo = true;
-            StopAllCoroutines(); // Detiene animaciones por frecuencia si estaban activas
-            animator.Play(animacionMovimiento);
-            puntosActuales += puntosAnimacionMovimiento;
+            float distancia = Vector3.Distance(transform.position, jugador.position);
+            bool entroZona = distancia <= radioZona;
+
+            if (entroZona && !jugadorEnZona)
+            {
+                jugadorEnZona = true;
+                indiceActual = 0;
+                moviendose = true;
+                animator.Play(nombresAnimaciones.Count > 2 ? nombresAnimaciones[2] : "Move");
+            }
+            else if (!entroZona && jugadorEnZona)
+            {
+                jugadorEnZona = false;
+                moviendose = false;
+                animator.Play(nombresAnimaciones.Count > 3 ? nombresAnimaciones[3] : nombresAnimaciones[0]);
+            }
         }
 
-        if (movimientoActivo && indiceDestino < puntosDestino.Count)
+        if (moviendose)
         {
-            Vector3 destino = puntosDestino[indiceDestino].position;
-            transform.position = Vector3.MoveTowards(transform.position, destino, velocidadMovimiento * Time.deltaTime);
-
-            if (Vector3.Distance(transform.position, destino) < 0.1f)
+            MoverHeroe();
+        }
+        else
+        {
+            // Cambio de animaciones idle según tiempo
+            contadorTiempoIdle -= Time.deltaTime;
+            if (contadorTiempoIdle <= 0f)
             {
-                indiceDestino++;
-                if (indiceDestino >= puntosDestino.Count)
-                {
-                    animator.Play("Idle");
-                }
+                indiceIdle = (indiceIdle + 1) % 2; // Cambia entre 0 y 1 para idle 1 y idle 2
+                if (animator != null && nombresAnimaciones.Count > indiceIdle)
+                    animator.Play(nombresAnimaciones[indiceIdle]);
+                contadorTiempoIdle = tiempoCambioIdle;
             }
         }
     }
 
-    bool EstaJugadorEnZona()
+    void MoverHeroe()
     {
-        if (jugador == null) return false;
-        return Vector3.Distance(jugador.position, transform.position + centroZona) <= radioZona;
-    }
+        if (puntosMovimiento.Length == 0) return;
 
-    IEnumerator ReproducirAnimacionesPorFrecuencia()
-    {
-        animacionPorFrecuenciaActiva = true;
-        while (animacionPorFrecuenciaActiva && animaciones.Count > 0)
+        Transform destino = puntosMovimiento[indiceActual];
+        Vector3 direccion = destino.position - transform.position;
+        direccion.y = 0;
+
+        if (direccion.magnitude < 0.1f)
         {
-            int indice = Random.Range(0, animaciones.Count);
-            AnimacionConPuntos anim = animaciones[indice];
-
-            animator.Play(anim.nombreAnimacion);
-            puntosActuales += anim.puntos;
-
-            yield return new WaitForSeconds(anim.duracion);
+            indiceActual++;
+            if (indiceActual >= puntosMovimiento.Length)
+            {
+                // Llegó al final, detener movimiento y poner animacion al salir
+                moviendose = false;
+                indiceActual = 0;
+                if (animator != null && nombresAnimaciones.Count > 3)
+                    animator.Play(nombresAnimaciones[3]);
+                else if (animator != null)
+                    animator.Play(nombresAnimaciones[0]); // idle 1
+            }
+        }
+        else
+        {
+            transform.position += direccion.normalized * velocidad * Time.deltaTime;
+            if (animator != null && nombresAnimaciones.Count > 2)
+                animator.Play(nombresAnimaciones[2]);
         }
     }
 
-    public void MarcarComoFotografiado()
+    public int ObtenerPuntosAnimacionActual()
     {
-        heroeFotografiado = true;
+        if (moviendose && puntosAnimaciones.Count > 2)
+            return puntosAnimaciones[2];
+        else if (!moviendose && puntosAnimaciones.Count > 0)
+            return puntosAnimaciones[indiceIdle];
+        return 0;
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = colorZona;
-        Gizmos.DrawWireSphere(transform.position + centroZona, radioZona);
+        Gizmos.color = colorGizmo;
+        Gizmos.DrawWireSphere(transform.position, radioZona);
     }
 }
