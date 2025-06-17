@@ -2,119 +2,104 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[System.Serializable]
+public class AnimacionConPuntos
+{
+    public string nombreAnimacion;
+    public int puntos;
+    public float duracion;
+}
 public class ComportamientoHeroe : MonoBehaviour
 {
-    [Header("Animaciones")]
-    public Animator animador;
-    public string animacionIdle = "Idle";
-    public string animacionPrimera = "Reaccion";
-    public string animacionSegunda = "Especial";
+    [Header("Animaciones configurables")]
+    public List<AnimacionConPuntos> animaciones = new List<AnimacionConPuntos>();
 
-    [Header("Puntos por animación")]
-    public int puntosPrimeraAnimacion = 10;
-    public int puntosSegundaAnimacion = 20;
-
-    [Header("Distancias de activación")]
-    public Transform jugador;
-    public float distanciaReaccion = 10f;
-    public float distanciaEspecial = 4f;
-
-    [Header("Movimiento entre puntos")]
-    public bool usarMovimiento = true;
-    public Transform puntoA;
-    public Transform puntoB;
+    [Header("Movimiento")]
+    public bool moverHeroe = false;
+    public List<Transform> puntosDestino;
     public float velocidadMovimiento = 2f;
+    public string animacionMovimiento = "Caminar";
+    public int puntosAnimacionMovimiento = 5;
 
-    [HideInInspector] public bool fueFotografiado = false;
-    [HideInInspector] public int puntosPorFoto = 0;
+    [Header("Zona de activación (Gizmos)")]
+    public Vector3 centroZona = Vector3.zero;
+    public float radioZona = 5f;
+    public Color colorZona = Color.green;
 
-    private bool reaccionActiva = false;
-    private bool especialActiva = false;
-    private bool estabaEnZonaEspecial = false;
+    private Transform jugador;
+    private Animator animator;
+    private int indiceDestino = 0;
     private bool movimientoActivo = false;
-    private Vector3 destinoActual;
+    private bool animacionPorFrecuenciaActiva = false;
+
+    private bool heroeFotografiado = false;
+    public int GetPuntosActuales() => heroeFotografiado ? 0 : puntosActuales;
+    private int puntosActuales = 0;
 
     void Start()
     {
-        if (animador != null)
-            animador.Play(animacionIdle);
-
-        if (puntoA != null)
-            destinoActual = puntoA.position;
+        jugador = GameObject.FindGameObjectWithTag("Player").transform;
+        animator = GetComponent<Animator>();
+        if (!moverHeroe)
+            StartCoroutine(ReproducirAnimacionesPorFrecuencia());
     }
 
     void Update()
     {
-        if (jugador == null) return;
-
-        float distancia = Vector3.Distance(transform.position, jugador.position);
-
-        // Activar animación de reacción y (opcionalmente) movimiento
-        if (distancia <= distanciaReaccion && !reaccionActiva)
+        if (moverHeroe && !movimientoActivo && EstaJugadorEnZona())
         {
-            ActivarPrimeraAnimacion();
+            movimientoActivo = true;
+            StopAllCoroutines(); // Detiene animaciones por frecuencia si estaban activas
+            animator.Play(animacionMovimiento);
+            puntosActuales += puntosAnimacionMovimiento;
         }
 
-        // Detectar salida de la zona especial para activar la segunda animación
-        if (distancia <= distanciaEspecial)
+        if (movimientoActivo && indiceDestino < puntosDestino.Count)
         {
-            estabaEnZonaEspecial = true;
-        }
-        else
-        {
-            if (estabaEnZonaEspecial && !especialActiva)
+            Vector3 destino = puntosDestino[indiceDestino].position;
+            transform.position = Vector3.MoveTowards(transform.position, destino, velocidadMovimiento * Time.deltaTime);
+
+            if (Vector3.Distance(transform.position, destino) < 0.1f)
             {
-                ActivarSegundaAnimacion();
-                estabaEnZonaEspecial = false;
+                indiceDestino++;
+                if (indiceDestino >= puntosDestino.Count)
+                {
+                    animator.Play("Idle");
+                }
             }
         }
+    }
 
-        if (movimientoActivo && usarMovimiento && puntoA != null && puntoB != null)
+    bool EstaJugadorEnZona()
+    {
+        if (jugador == null) return false;
+        return Vector3.Distance(jugador.position, transform.position + centroZona) <= radioZona;
+    }
+
+    IEnumerator ReproducirAnimacionesPorFrecuencia()
+    {
+        animacionPorFrecuenciaActiva = true;
+        while (animacionPorFrecuenciaActiva && animaciones.Count > 0)
         {
-            MoverEntrePuntos();
+            int indice = Random.Range(0, animaciones.Count);
+            AnimacionConPuntos anim = animaciones[indice];
+
+            animator.Play(anim.nombreAnimacion);
+            puntosActuales += anim.puntos;
+
+            yield return new WaitForSeconds(anim.duracion);
         }
     }
 
-    void ActivarPrimeraAnimacion()
+    public void MarcarComoFotografiado()
     {
-        reaccionActiva = true;
-
-        if (usarMovimiento)
-            movimientoActivo = true;
-
-        if (animador != null)
-            animador.Play(animacionPrimera);
-
-        puntosPorFoto = puntosPrimeraAnimacion;
-    }
-
-    void ActivarSegundaAnimacion()
-    {
-        especialActiva = true;
-        movimientoActivo = false;
-
-        if (animador != null)
-            animador.Play(animacionSegunda);
-
-        puntosPorFoto = puntosSegundaAnimacion;
-    }
-
-    void MoverEntrePuntos()
-    {
-        transform.position = Vector3.MoveTowards(transform.position, destinoActual, velocidadMovimiento * Time.deltaTime);
-
-        if (Vector3.Distance(transform.position, destinoActual) < 0.1f)
-        {
-            destinoActual = (destinoActual == puntoA.position) ? puntoB.position : puntoA.position;
-        }
+        heroeFotografiado = true;
     }
 
     void OnDrawGizmosSelected()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, distanciaReaccion);
-
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, distanciaEspecial);
+        Gizmos.color = colorZona;
+        Gizmos.DrawWireSphere(transform.position + centroZona, radioZona);
     }
 }

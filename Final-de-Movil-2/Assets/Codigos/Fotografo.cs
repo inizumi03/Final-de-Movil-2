@@ -5,91 +5,86 @@ using UnityEngine.UI;
 using TMPro;
 public class Fotografo : MonoBehaviour
 {
-    [Header("Configuración")]
     public float distanciaMaxima = 100f;
-    public int puntosPorFoto = 10;
     public string tagHeroe = "Heroe";
-
-    [Header("Audio")]
     public AudioSource audioFoto;
+    public GameObject interfazUI;
+    public RawImage pantallaFoto;
+    public Camera camaraFoto;
+    public RenderTexture texturaFoto;
+    public Text textoPuntaje;
 
-    [Header("Galería")]
-    public List<Texture2D> fotosCapturadas = new List<Texture2D>();
+    private static int puntajeTotal = 0;
 
-    [Header("UI para ocultar temporalmente")]
-    public GameObject uiCanvas;
-
-    [Header("Texto puntaje TMP")]
-    public TextMeshProUGUI textoPuntaje;
-
-    private int puntajeTotal = 0;
-
-    void Start()
+    private void Start()
     {
-        ActualizarTextoPuntaje();
+        ActualizarPuntajeUI();
+    }
+
+    public static void SumarPuntos(int puntos)
+    {
+        puntajeTotal += puntos;
     }
 
     public void IntentarTomarFoto()
     {
         Ray rayo = new Ray(transform.position, transform.forward);
-        RaycastHit impacto;
-
-        if (Physics.Raycast(rayo, out impacto, distanciaMaxima))
+        if (Physics.Raycast(rayo, out RaycastHit hit, distanciaMaxima))
         {
-            if (impacto.collider.CompareTag(tagHeroe))
+            if (hit.collider.CompareTag(tagHeroe))
             {
-                HeroeFotografiable heroe = impacto.collider.GetComponent<HeroeFotografiable>();
-                if (heroe != null && !heroe.fueFotografiado)
+                ComportamientoHeroe heroe = hit.collider.GetComponent<ComportamientoHeroe>();
+                if (heroe != null)
                 {
-                    heroe.fueFotografiado = true;
-                    puntajeTotal += puntosPorFoto;
+                    if (!FueFotografiado(heroe))
+                    {
+                        heroe.MarcarFotografiado();
+                        ActualizarPuntajeUI();
 
-                    if (audioFoto != null) audioFoto.Play();
-
-                    ActualizarTextoPuntaje();
-                    StartCoroutine(CapturarFoto());
-
-                    Debug.Log("¡Foto tomada a: " + impacto.collider.name + "!");
-                }
-                else
-                {
-                    Debug.Log("Este héroe ya fue fotografiado.");
+                        if (audioFoto) audioFoto.Play();
+                        StartCoroutine(SacarFoto());
+                    }
+                    else
+                    {
+                        Debug.Log("Este héroe ya fue fotografiado.");
+                    }
                 }
             }
-            else
-            {
-                Debug.Log("No estás mirando a un héroe.");
-            }
-        }
-        else
-        {
-            Debug.Log("No hay nada al frente.");
         }
     }
 
-    private IEnumerator CapturarFoto()
+    bool FueFotografiado(ComportamientoHeroe heroe)
     {
-        if (uiCanvas != null) uiCanvas.SetActive(false);
-        yield return new WaitForEndOfFrame();
-
-        Texture2D captura = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-        captura.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-        captura.Apply();
-
-        fotosCapturadas.Add(captura);
-
-        if (uiCanvas != null) uiCanvas.SetActive(true);
+        return heroe.GetType().GetField("yaFotografiado", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(heroe) as bool? == true;
     }
 
-    public int ObtenerPuntaje()
-    {
-        return puntajeTotal;
-    }
-
-    void ActualizarTextoPuntaje()
+    void ActualizarPuntajeUI()
     {
         if (textoPuntaje != null)
+        {
             textoPuntaje.text = "Puntos: " + puntajeTotal;
+        }
+    }
+
+    System.Collections.IEnumerator SacarFoto()
+    {
+        interfazUI.SetActive(false);
+        yield return new WaitForEndOfFrame();
+
+        camaraFoto.targetTexture = texturaFoto;
+        camaraFoto.Render();
+        RenderTexture.active = texturaFoto;
+
+        Texture2D foto = new Texture2D(texturaFoto.width, texturaFoto.height, TextureFormat.RGB24, false);
+        foto.ReadPixels(new Rect(0, 0, texturaFoto.width, texturaFoto.height), 0, 0);
+        foto.Apply();
+
+        pantallaFoto.texture = foto;
+
+        camaraFoto.targetTexture = null;
+        RenderTexture.active = null;
+
+        interfazUI.SetActive(true);
     }
 }
 
