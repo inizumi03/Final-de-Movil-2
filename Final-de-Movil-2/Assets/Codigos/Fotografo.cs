@@ -6,31 +6,35 @@ using UnityEngine.UI;
 public class Fotografo : MonoBehaviour
 {
     [Header("Configuración de cámara")]
-    public float distanciaMaxima = 100f; // Alcance del raycast desde la cámara
+    public float distanciaMaxima = 100f;
 
     [Header("Puntaje")]
+    public int puntosPorFoto = 10;
     private int puntajeTotal = 0;
 
-    [Header("Referencias UI")]
-    public Text textoPuntaje;  // Texto UI normal para mostrar puntaje
-
-    [Header("Tag de los objetos fotografiables")]
+    [Header("UI y Captura")]
+    public Canvas canvasPrincipal;
+    public AudioSource audioFoto;
     public string tagHeroe = "Heroe";
 
-    [Header("Audio")]
-    public AudioSource audioFoto;  // AudioSource con sonido de disparo
+    [Header("Fotos capturadas")]
+    public List<Texture2D> fotosCapturadas = new List<Texture2D>();
 
-    void Start()
+    private bool tomandoFoto = false;
+
+    public void IntentarTomarFoto()
     {
-        ActualizarTextoPuntaje();
+        if (!tomandoFoto)
+            StartCoroutine(Fotografiar());
     }
 
-    public void BotonTomarFoto()
+    private IEnumerator Fotografiar()
     {
-        Ray rayo = new Ray(transform.position, transform.forward);
-        RaycastHit impacto;
+        tomandoFoto = true;
 
-        if (Physics.Raycast(rayo, out impacto, distanciaMaxima))
+        // Lanzar raycast
+        Ray rayo = new Ray(transform.position, transform.forward);
+        if (Physics.Raycast(rayo, out RaycastHit impacto, distanciaMaxima))
         {
             if (impacto.collider.CompareTag(tagHeroe))
             {
@@ -38,13 +42,25 @@ public class Fotografo : MonoBehaviour
                 if (heroe != null && !heroe.fueFotografiado)
                 {
                     heroe.fueFotografiado = true;
+                    puntajeTotal += puntosPorFoto;
 
-                    // Aquí sumás los puntos que quieras, por ejemplo:
-                    int puntosAGanar = heroe.puntosPorFoto;
+                    // Ocultar UI y esperar un frame
+                    if (canvasPrincipal != null)
+                        canvasPrincipal.enabled = false;
 
-                    puntajeTotal += puntosAGanar;
-                    ActualizarTextoPuntaje();
+                    yield return new WaitForEndOfFrame();
 
+                    // Captura de pantalla
+                    Texture2D captura = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+                    captura.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+                    captura.Apply();
+                    fotosCapturadas.Add(captura);
+
+                    // Reactivar UI
+                    if (canvasPrincipal != null)
+                        canvasPrincipal.enabled = true;
+
+                    // Sonido y mensaje
                     if (audioFoto != null)
                         audioFoto.Play();
 
@@ -64,16 +80,9 @@ public class Fotografo : MonoBehaviour
         {
             Debug.Log("No hay nada al frente.");
         }
-    }
 
-    void ActualizarTextoPuntaje()
-    {
-        if (textoPuntaje != null)
-        {
-            textoPuntaje.text = "Puntos: " + puntajeTotal;
-        }
+        tomandoFoto = false;
     }
-
     public int ObtenerPuntaje()
     {
         return puntajeTotal;
