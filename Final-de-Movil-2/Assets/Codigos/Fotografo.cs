@@ -74,5 +74,9 @@ public class Fotografo : MonoBehaviour
         }
     }
 
+    public int ObtenerPuntaje()
+    {
+        return puntajeTotal;
+    }
 }
 

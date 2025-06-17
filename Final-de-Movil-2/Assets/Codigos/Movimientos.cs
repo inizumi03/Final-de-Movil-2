@@ -11,6 +11,9 @@ public class Movimientos : MonoBehaviour
     private int indiceActual = 0;
     private bool movimientoFinalizado = false;
 
+    [Header("Referencia al Fin de Nivel (opcional)")]
+    public FinDeNivel finDeNivel; // Asignar desde el inspector si no está en este mismo GameObject
+
     void Update()
     {
         if (movimientoFinalizado || puntosDestino.Length == 0) return;
@@ -48,9 +51,23 @@ public class Movimientos : MonoBehaviour
         if (Vector3.Distance(transform.position, posicionObjetivo) <= distanciaMinima)
         {
             indiceActual++;
+
             if (indiceActual >= puntosDestino.Length)
             {
                 movimientoFinalizado = true;
+
+                // Mostrar menú final si hay un FinDeNivel asignado
+                if (finDeNivel != null)
+                {
+                    finDeNivel.MostrarMenuFinal();
+                }
+                else
+                {
+                    // También intenta buscarlo en este mismo GameObject como respaldo
+                    FinDeNivel local = GetComponent<FinDeNivel>();
+                    if (local != null)
+                        local.MostrarMenuFinal();
+                }
             }
         }
     }
