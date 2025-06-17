@@ -2,39 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using TMPro;
 public class Fotografo : MonoBehaviour
 {
-    [Header("Configuración de cámara")]
+    [Header("Configuración")]
     public float distanciaMaxima = 100f;
-
-    [Header("Puntaje")]
     public int puntosPorFoto = 10;
-    private int puntajeTotal = 0;
-
-    [Header("UI y Captura")]
-    public Canvas canvasPrincipal;
-    public AudioSource audioFoto;
     public string tagHeroe = "Heroe";
 
-    [Header("Fotos capturadas")]
+    [Header("Audio")]
+    public AudioSource audioFoto;
+
+    [Header("Galería")]
     public List<Texture2D> fotosCapturadas = new List<Texture2D>();
 
-    private bool tomandoFoto = false;
+    [Header("UI para ocultar temporalmente")]
+    public GameObject uiCanvas;
+
+    [Header("Texto puntaje TMP")]
+    public TextMeshProUGUI textoPuntaje;
+
+    private int puntajeTotal = 0;
+
+    void Start()
+    {
+        ActualizarTextoPuntaje();
+    }
 
     public void IntentarTomarFoto()
     {
-        if (!tomandoFoto)
-            StartCoroutine(Fotografiar());
-    }
-
-    private IEnumerator Fotografiar()
-    {
-        tomandoFoto = true;
-
-        // Lanzar raycast
         Ray rayo = new Ray(transform.position, transform.forward);
-        if (Physics.Raycast(rayo, out RaycastHit impacto, distanciaMaxima))
+        RaycastHit impacto;
+
+        if (Physics.Raycast(rayo, out impacto, distanciaMaxima))
         {
             if (impacto.collider.CompareTag(tagHeroe))
             {
@@ -44,27 +44,12 @@ public class Fotografo : MonoBehaviour
                     heroe.fueFotografiado = true;
                     puntajeTotal += puntosPorFoto;
 
-                    // Ocultar UI y esperar un frame
-                    if (canvasPrincipal != null)
-                        canvasPrincipal.enabled = false;
+                    if (audioFoto != null) audioFoto.Play();
 
-                    yield return new WaitForEndOfFrame();
+                    ActualizarTextoPuntaje();
+                    StartCoroutine(CapturarFoto());
 
-                    // Captura de pantalla
-                    Texture2D captura = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
-                    captura.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
-                    captura.Apply();
-                    fotosCapturadas.Add(captura);
-
-                    // Reactivar UI
-                    if (canvasPrincipal != null)
-                        canvasPrincipal.enabled = true;
-
-                    // Sonido y mensaje
-                    if (audioFoto != null)
-                        audioFoto.Play();
-
-                    Debug.Log("¡Foto tomada al héroe: " + impacto.collider.name + "!");
+                    Debug.Log("¡Foto tomada a: " + impacto.collider.name + "!");
                 }
                 else
                 {
@@ -80,12 +65,31 @@ public class Fotografo : MonoBehaviour
         {
             Debug.Log("No hay nada al frente.");
         }
-
-        tomandoFoto = false;
     }
+
+    private IEnumerator CapturarFoto()
+    {
+        if (uiCanvas != null) uiCanvas.SetActive(false);
+        yield return new WaitForEndOfFrame();
+
+        Texture2D captura = new Texture2D(Screen.width, Screen.height, TextureFormat.RGB24, false);
+        captura.ReadPixels(new Rect(0, 0, Screen.width, Screen.height), 0, 0);
+        captura.Apply();
+
+        fotosCapturadas.Add(captura);
+
+        if (uiCanvas != null) uiCanvas.SetActive(true);
+    }
+
     public int ObtenerPuntaje()
     {
         return puntajeTotal;
+    }
+
+    void ActualizarTextoPuntaje()
+    {
+        if (textoPuntaje != null)
+            textoPuntaje.text = "Puntos: " + puntajeTotal;
     }
 }
 

@@ -12,7 +12,7 @@ public class Movimientos : MonoBehaviour
     private bool movimientoFinalizado = false;
 
     [Header("Referencia al Fin de Nivel (opcional)")]
-    public FinDeNivel finDeNivel; // Asignar desde el inspector si no está en este mismo GameObject
+    public MenuFinal menuFinal; // Asignar desde el inspector si no está en este mismo GameObject
 
     void Update()
     {
@@ -56,18 +56,9 @@ public class Movimientos : MonoBehaviour
             {
                 movimientoFinalizado = true;
 
-                // Mostrar menú final si hay un FinDeNivel asignado
-                if (finDeNivel != null)
-                {
-                    finDeNivel.MostrarMenuFinal();
-                }
-                else
-                {
-                    // También intenta buscarlo en este mismo GameObject como respaldo
-                    FinDeNivel local = GetComponent<FinDeNivel>();
-                    if (local != null)
-                        local.MostrarMenuFinal();
-                }
+                if (menuFinal != null)
+                    menuFinal.MostrarMenuFinal();
+
             }
         }
     }
