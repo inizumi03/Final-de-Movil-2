@@ -6,6 +6,7 @@ using TMPro;
 public class Fotografo : MonoBehaviour
 {
     [Header("Puntaje")]
+    // Ya no se usa este valor fijo, pero lo dejo por si quieres un valor por defecto
     public int puntosPorFoto = 10;
     private int puntajeTotal = 0;
 
@@ -69,13 +70,14 @@ public class Fotografo : MonoBehaviour
             heroesFotografiados.Add(heroe);
             heroe.fueFotografiado = true;
 
-            // Sumar puntos y actualizar texto
-            puntajeTotal += puntosPorFoto;
+            // Sumar puntos según el valor dinámico del héroe
+            puntajeTotal += heroe.puntosPorFoto;
+
             ActualizarTextoPuntaje();
 
             if (audioFoto != null) audioFoto.Play();
 
-            Debug.Log("Foto tomada a " + heroe.name);
+            Debug.Log("Foto tomada a " + heroe.name + " con puntos: " + heroe.puntosPorFoto);
         }
         else
         {
