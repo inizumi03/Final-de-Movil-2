@@ -7,6 +7,7 @@ public class GirarCamara : MonoBehaviour
 {
     [Header("Velocidad de giro")]
     public float velocidadRotacion = 50f;
+    public float suavizadoCentrado = 5f;
 
     [Header("Bloquear ejes de rotación")]
     public bool bloquearEjeX = false;
@@ -16,19 +17,23 @@ public class GirarCamara : MonoBehaviour
     [Range(0f, 0.5f)] public float anchoBorde = 0.2f; // 20 % a cada lado
     [Range(0f, 0.5f)] public float altoBorde = 0.2f;  // 20 % arriba y abajo
 
-    private Quaternion rotacionInicial;
+    [Header("Referencia al jugador")]
+    public Transform jugador; // Asigna el jugador desde el Inspector
+
+    private Quaternion rotacionObjetivo;
+    private bool centrandoCamara = false;
 
     void Start()
     {
-        // Guardamos la rotación inicial para poder centrar después
-        rotacionInicial = transform.rotation;
+        rotacionObjetivo = transform.rotation;
     }
 
     void Update()
     {
+        centrandoCamara = false; // Reiniciar cada frame
+
         foreach (Touch toque in Input.touches)
         {
-            // Ignorar toque si está sobre UI (botón, panel, etc)
             if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(toque.fingerId))
                 continue;
 
@@ -43,9 +48,9 @@ public class GirarCamara : MonoBehaviour
 
             bool estaEnBordeHorizontal = enBordeDerecho || enBordeIzquierdo;
             bool estaEnBordeVertical = enBordeSuperior || enBordeInferior;
+            bool enCentro = !estaEnBordeHorizontal && !estaEnBordeVertical;
 
-            // Girar cámara si el dedo está en algún borde
-            if (toque.phase == TouchPhase.Stationary || toque.phase == TouchPhase.Moved)
+            if ((toque.phase == TouchPhase.Stationary || toque.phase == TouchPhase.Moved) && !enCentro)
             {
                 Vector3 rotacion = Vector3.zero;
 
@@ -62,14 +67,21 @@ public class GirarCamara : MonoBehaviour
                 }
 
                 transform.Rotate(rotacion * velocidadRotacion * Time.deltaTime, Space.Self);
+                rotacionObjetivo = transform.rotation;
             }
 
-            // Centrar cámara si se toca el centro (fuera de bordes)
-            bool enCentro = !estaEnBordeHorizontal && !estaEnBordeVertical;
-            if (enCentro && toque.phase == TouchPhase.Began)
+            // Centrado con toque mantenido en el centro
+            if ((toque.phase == TouchPhase.Stationary) && enCentro && jugador != null)
             {
-                transform.rotation = rotacionInicial;
+                rotacionObjetivo = Quaternion.Euler(0f, jugador.eulerAngles.y, 0f);
+                centrandoCamara = true;
             }
+        }
+
+        // Aplicar rotación suavizada
+        if (centrandoCamara)
+        {
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotacionObjetivo, Time.deltaTime * suavizadoCentrado);
         }
     }
 }

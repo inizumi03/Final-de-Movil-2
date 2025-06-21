@@ -216,6 +216,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1359174175}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a936afc81c7d2fb4696502509beb97c4,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1359174176}
   m_SourcePrefab: {fileID: 100100000, guid: a936afc81c7d2fb4696502509beb97c4, type: 3}
 --- !u!1001 &40966313
 PrefabInstance:
@@ -57253,10 +57257,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   velocidadRotacion: 50
+  suavizadoCentrado: 5
   bloquearEjeX: 0
   bloquearEjeY: 0
   anchoBorde: 0.2
   altoBorde: 0.2
+  jugador: {fileID: 1534256206}
 --- !u!114 &963194230
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -61505,6 +61511,27 @@ MonoBehaviour:
   velocidad: 3
   distanciaMinima: 0.1
   tiempoDeEspera: 55
+--- !u!65 &1359174176
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359174169}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1, y: 0.56440544, z: 1.7946091}
+  m_Center: {x: 0, y: 1.0150557, z: -0.13611984}
 --- !u!1001 &1380131381
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -63401,6 +63428,7 @@ MonoBehaviour:
   - {fileID: 1018905288}
   velocidad: 3
   distanciaMinima: 0.1
+  velocidadRotacion: 5
   menuFinal: {fileID: 1668340953}
 --- !u!4 &1541568903 stripped
 Transform:

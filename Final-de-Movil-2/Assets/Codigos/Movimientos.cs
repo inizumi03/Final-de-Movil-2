@@ -4,15 +4,16 @@ using UnityEngine;
 
 public class Movimientos : MonoBehaviour
 {
-    public Transform[] puntosDestino; // Puntos por los que se moverá el jugador
+    public Transform[] puntosDestino;
     public float velocidad = 3f;
     public float distanciaMinima = 0.1f;
+    public float velocidadRotacion = 5f; // Nueva: velocidad para girar
 
     private int indiceActual = 0;
     private bool movimientoFinalizado = false;
 
     [Header("Referencia al Fin de Nivel (opcional)")]
-    public MenuFinal menuFinal; // Asignar desde el inspector si no está en este mismo GameObject
+    public MenuFinal menuFinal;
 
     void Update()
     {
@@ -22,22 +23,21 @@ public class Movimientos : MonoBehaviour
         Vector3 posicionActual = transform.position;
         Vector3 posicionObjetivo = destino.position;
 
-        // Verifica si hay diferencia de altura (eje Y)
-        bool cambiarAltura = Mathf.Abs(posicionActual.y - posicionObjetivo.y) > 0.05f;
-
-        // Calcula la dirección hacia el destino
         Vector3 direccion = posicionObjetivo - posicionActual;
 
-        if (!cambiarAltura)
-        {
-            // Si no hay diferencia de altura, no se mueve en Y
+        // Evita rotación en Y si no hay desnivel
+        if (Mathf.Abs(direccion.y) < 0.05f)
             direccion.y = 0;
+
+        if (direccion != Vector3.zero)
+        {
+            // Gira suavemente hacia la dirección de movimiento
+            Quaternion rotacionObjetivo = Quaternion.LookRotation(direccion);
+            transform.rotation = Quaternion.Slerp(transform.rotation, rotacionObjetivo, Time.deltaTime * velocidadRotacion);
         }
 
-        // Movimiento con velocidad constante
+        // Movimiento
         Vector3 movimiento = direccion.normalized * velocidad * Time.deltaTime;
-
-        // Evita pasarse del punto objetivo
         if (movimiento.magnitude > direccion.magnitude)
         {
             transform.position = posicionObjetivo;
@@ -47,18 +47,15 @@ public class Movimientos : MonoBehaviour
             transform.position += movimiento;
         }
 
-        // Verifica si llegó al punto
+        // Verifica si llegó
         if (Vector3.Distance(transform.position, posicionObjetivo) <= distanciaMinima)
         {
             indiceActual++;
-
             if (indiceActual >= puntosDestino.Length)
             {
                 movimientoFinalizado = true;
-
                 if (menuFinal != null)
                     menuFinal.MostrarMenuFinal();
-
             }
         }
     }
