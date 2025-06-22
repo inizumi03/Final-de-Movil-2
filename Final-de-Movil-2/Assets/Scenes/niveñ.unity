@@ -8642,8 +8642,73 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   puntosPorFoto: 10
   fueFotografiado: 0
-  usarPuntajePorAnimacion: 0
-  animador: {fileID: 0}
+  usarPuntajePorAnimacion: 1
+  animador: {fileID: 755584818}
+--- !u!95 &755584818
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 657588609}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 7f2b51d63a2e1f94abc5102155c37eaa, type: 3}
+  m_Controller: {fileID: 9100000, guid: 3d213c6c13a0e5343bb6dcce1689b206, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &755584819
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 657588609}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 614e7532bc7648d48a58bef4169deee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animaciones:
+  - nombreAnimacion: idel
+    puntos: 10
+  - nombreAnimacion: golpe combte
+    puntos: 30
+  - nombreAnimacion: "recibir da\xF1o"
+    puntos: 20
+  animator: {fileID: 755584818}
+  heroeFotografiable: {fileID: 755584817}
+  tiempoEntreAnimaciones: 3
+--- !u!114 &755584820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 657588609}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e74cd0817cd343e4281c6ced799253b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animador: {fileID: 755584818}
+  animacionIdle: Idel
+  animacionCaminar: golpe combte
+  animacionEspecial: "recibir da\xF1o"
+  tiempoEnIdle: 5
+  tiempoCaminando: 3
+  tiempoEspecial: 2
+  puntosIdle: 10
+  puntosCaminar: 30
+  puntosEspecial: 20
 --- !u!1001 &770518691
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62932,6 +62997,18 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 755584816}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7f2b51d63a2e1f94abc5102155c37eaa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 755584819}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7f2b51d63a2e1f94abc5102155c37eaa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 755584818}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7f2b51d63a2e1f94abc5102155c37eaa,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 755584820}
   m_SourcePrefab: {fileID: 100100000, guid: 7f2b51d63a2e1f94abc5102155c37eaa, type: 3}
 --- !u!1001 &1485548227
 PrefabInstance:
