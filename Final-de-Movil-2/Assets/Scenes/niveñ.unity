@@ -8640,7 +8640,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94a20edb290f13f41a5628425af69e5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puntosPorFoto: 10
+  puntosPorFoto: 55
   fueFotografiado: 0
   usarPuntajePorAnimacion: 1
   animador: {fileID: 755584818}
@@ -8678,15 +8678,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   animaciones:
-  - nombreAnimacion: idel
+  - nombreAnimacion: Idle
     puntos: 10
-  - nombreAnimacion: golpe combte
+  - nombreAnimacion: Defensa
+    puntos: 5
+  - nombreAnimacion: Golpe
     puntos: 30
-  - nombreAnimacion: "recibir da\xF1o"
-    puntos: 20
   animator: {fileID: 755584818}
   heroeFotografiable: {fileID: 755584817}
-  tiempoEntreAnimaciones: 3
+  tiempoEntreAnimaciones: 4
+  puntosIdle: 10
 --- !u!114 &755584820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -58306,6 +58307,14 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 1062463362}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f2bf521d1b9f6ca41b5f462640406a53,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1062463363}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: f2bf521d1b9f6ca41b5f462640406a53,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1062463364}
   m_SourcePrefab: {fileID: 100100000, guid: f2bf521d1b9f6ca41b5f462640406a53, type: 3}
 --- !u!1001 &1037286714
 PrefabInstance:
@@ -58584,7 +58593,55 @@ GameObject:
     type: 3}
   m_PrefabInstance: {fileID: 1034681989}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1062463362
+--- !u!95 &1062463362
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062463361}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: f2bf521d1b9f6ca41b5f462640406a53, type: 3}
+  m_Controller: {fileID: 9100000, guid: 26b14cc9869f840429ccd8969e150b86, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &1062463363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1062463361}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 614e7532bc7648d48a58bef4169deee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  animaciones:
+  - nombreAnimacion: VillanoIdel
+    puntos: 0
+  - nombreAnimacion: VillanoGolpe
+    puntos: 0
+  - nombreAnimacion: villanoDead
+    puntos: 0
+  - nombreAnimacion: villanoDead 2
+    puntos: 0
+  - nombreAnimacion: villanoDead 3
+    puntos: 0
+  animator: {fileID: 1062463362}
+  heroeFotografiable: {fileID: 1062463364}
+  tiempoEntreAnimaciones: 2
+  puntosIdle: 10
+--- !u!114 &1062463364
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -58596,10 +58653,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94a20edb290f13f41a5628425af69e5c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  puntosPorFoto: 10
+  puntosPorFoto: 1
   fueFotografiado: 0
-  usarPuntajePorAnimacion: 0
-  animador: {fileID: 0}
+  usarPuntajePorAnimacion: 1
+  animador: {fileID: 1062463362}
 --- !u!1001 &1096341834
 PrefabInstance:
   m_ObjectHideFlags: 0
