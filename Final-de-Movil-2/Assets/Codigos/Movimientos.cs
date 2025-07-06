@@ -1,11 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Movimientos : MonoBehaviour
 {
-    // Lista de caminos, donde cada camino es una lista de puntos (Transform)
-    public List<List<Transform>> caminos;
+    // Lista pública de puntos del camino que el jugador sigue (cada camino es un conjunto de puntos)
+    public List<Transform> caminoActual;
     private int indiceActual = 0;              // Índice del punto actual dentro del camino seleccionado
     private bool enPuntoDeDecision = false;    // Bandera para saber si estamos en un punto de decisión
 
@@ -14,7 +15,7 @@ public class Movimientos : MonoBehaviour
     [Header("Referencia al Menú Final")]
     public MenuFinal menuFinal;                // Menú final que se muestra al completar el recorrido
 
-    public List<Transform> caminoActual;      // El camino actual que está siguiendo el jugador
+    private NavMeshAgent agente;               // Referencia al NavMeshAgent para mover al jugador
 
     // Lista de puntos de decisión (Transform)
     [Header("Puntos de Decisión")]
@@ -22,9 +23,12 @@ public class Movimientos : MonoBehaviour
 
     void Start()
     {
+        // Obtener el NavMeshAgent
+        agente = GetComponent<NavMeshAgent>();
+
         // Empieza con el primer camino
-        if (caminos.Count > 0)
-            caminoActual = caminos[0];  // El primer camino es el que se sigue inicialmente
+        if (caminoActual.Count > 0)
+            agente.SetDestination(caminoActual[0].position);  // Establecer destino inicial
     }
 
     void Update()
@@ -47,33 +51,13 @@ public class Movimientos : MonoBehaviour
 
         Vector3 direccion = posicionObjetivo - posicionActual;
 
-        if (Mathf.Abs(direccion.y) < 0.05f) direccion.y = 0;
-
-        if (direccion != Vector3.zero)
-        {
-            // Gira suavemente hacia la dirección de movimiento
-            Quaternion rotacionObjetivo = Quaternion.LookRotation(direccion);
-            transform.rotation = Quaternion.Slerp(transform.rotation, rotacionObjetivo, Time.deltaTime * 5f);
-        }
-
-        // Movimiento
-        Vector3 movimiento = direccion.normalized * 3f * Time.deltaTime;
-        if (movimiento.magnitude > direccion.magnitude)
-        {
-            transform.position = posicionObjetivo;
-        }
-        else
-        {
-            transform.position += movimiento;
-        }
-
-        // Verifica si llegó
+        // Si llegamos a un punto de destino
         if (Vector3.Distance(transform.position, posicionObjetivo) <= 0.1f)
         {
             indiceActual++;
 
             // Si llegamos a un punto de decisión
-            if (puntosDeDecision.Contains(destino))
+            if (puntosDeDecision.Contains(destino))  // Aquí se verifica si el destino es un punto de decisión
             {
                 enPuntoDeDecision = true; // Detenemos el movimiento y mostramos el menú
                 return; // Esperamos que el jugador decida
@@ -85,6 +69,12 @@ public class Movimientos : MonoBehaviour
                 if (menuFinal != null)
                     menuFinal.MostrarMenuFinal(); // Mostrar el menú final
             }
+            else
+            {
+                // Continuar hacia el siguiente punto
+                if (agente != null)
+                    agente.SetDestination(caminoActual[indiceActual].position);  // Continuar movimiento
+            }
         }
     }
 
@@ -94,13 +84,20 @@ public class Movimientos : MonoBehaviour
         if (seguirCamino)
         {
             enPuntoDeDecision = false; // Continuar el camino actual
+            if (agente != null)
+                agente.SetDestination(caminoActual[indiceActual].position); // Continuar el movimiento
         }
         else
         {
-            // Cambiar a otro camino (aquí puedes definir la lógica para cambiar el camino)
+            // Cambiar a otro camino (por ejemplo, a otro conjunto de puntos en el Mesh)
             indiceActual = 0; // Reiniciar el camino actual
-            caminoActual = caminos[1]; // Cambiar al segundo camino de la lista
+            // Cambiar al siguiente camino
+            // En este caso, podemos cambiar el camino a otro conjunto de puntos.
+            caminoActual = new List<Transform>();  // Crear una nueva lista de puntos de destino
+            // Aquí puedes agregar el nuevo camino, por ejemplo, con puntos de decisión diferentes
             enPuntoDeDecision = false; // Continuar con el nuevo camino
+            if (agente != null)
+                agente.SetDestination(caminoActual[indiceActual].position); // Reiniciar movimiento
         }
     }
 }

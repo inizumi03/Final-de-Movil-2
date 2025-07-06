@@ -4,24 +4,27 @@ using UnityEngine;
 
 public class MenuDeDecision : MonoBehaviour
 {
-    public GameObject menuDecisiones;  // El menú que tiene las opciones de seguir o cambiar de camino
-    public Movimientos movimientos;    // Referencia al script de Movimientos
+    public GameObject menuDecisiones;  // El menú de decisiones que contiene los botones
+    public Camino camino;              // Referencia al script Camino para manipular el movimiento del jugador
 
+    // Este método se llamará para mostrar el menú de decisiones
     public void MostrarMenuDecisiones()
     {
-        menuDecisiones.SetActive(true);  // Mostrar el menú de decisiones
+        menuDecisiones.SetActive(true);  // Activar el menú de decisiones
     }
 
+    // Este método se llama cuando el jugador decide seguir el camino actual
     public void OpcionSeguirCamino()
     {
-        movimientos.TomarDecision(true);  // Continuar en el camino actual
-        menuDecisiones.SetActive(false);  // Ocultar el menú
+        camino.SeguirCamino();          // Llama a la función del script Camino para seguir el camino actual
+        menuDecisiones.SetActive(false); // Ocultar el menú
     }
 
+    // Este método se llama cuando el jugador decide cambiar el camino
     public void OpcionCambiarCamino()
     {
-        movimientos.TomarDecision(false);  // Cambiar de camino
-        menuDecisiones.SetActive(false);  // Ocultar el menú
+        camino.CambiarCamino();         // Llama a la función del script Camino para cambiar de camino
+        menuDecisiones.SetActive(false); // Ocultar el menú
     }
 
 }
