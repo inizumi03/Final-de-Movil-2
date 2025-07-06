@@ -36,5 +36,24 @@ public class HeroeFotografiable : MonoBehaviour
         // Si no coincide ninguna animación, usar puntos base
         return puntosPorFoto;
     }
+
+    // Método para activar una animación y calcular los puntos después de un retraso
+    public void ActivarAnimacionConPuntaje(string animacion)
+    {
+        StartCoroutine(ActivarAnimacionYCalcularPuntaje(animacion));
+    }
+
+    private IEnumerator ActivarAnimacionYCalcularPuntaje(string animacion)
+    {
+        // Activar la animación
+        animador.SetTrigger(animacion);
+
+        // Esperar un pequeño tiempo para que la animación inicie
+        yield return new WaitForSeconds(0.1f); // Ajusta el tiempo según lo necesario
+
+        // Obtener los puntos después de que la animación haya comenzado
+        int puntos = ObtenerPuntajeFinal();
+        Debug.Log("Puntos obtenidos: " + puntos);
+    }
 }
 
