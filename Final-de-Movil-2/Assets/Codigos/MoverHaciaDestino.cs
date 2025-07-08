@@ -9,40 +9,50 @@ public class MoverHaciaDestino : MonoBehaviour
     public float velocidad = 2f;
     public float distanciaMinima = 0.1f;
 
-    [Header("Tiempo de espera antes de moverse")]
-    public float tiempoDeEspera = 0f;
+    [Header("Collider de activación")]
+    public Collider zonaDeActivacion; // El collider que activa el movimiento
 
     private bool haLlegado = false;
-    private float tiempoTranscurrido = 0f;
     private bool movimientoIniciado = false;
+
+    void Start()
+    {
+        // Asegurarse de que el movimiento no comience al principio
+        zonaDeActivacion.enabled = true;
+    }
 
     void Update()
     {
         if (haLlegado || puntoDestino == null) return;
 
-        // Esperar antes de comenzar el movimiento
-        if (!movimientoIniciado)
+        // Solo empezar el movimiento si ha sido activado por el trigger
+        if (movimientoIniciado)
         {
-            tiempoTranscurrido += Time.deltaTime;
-            if (tiempoTranscurrido >= tiempoDeEspera)
+            // Dirección hacia el destino
+            Vector3 direccion = puntoDestino.position - transform.position;
+
+            // Verificar si el objeto ha llegado al destino
+            if (direccion.magnitude <= distanciaMinima)
             {
-                movimientoIniciado = true;
-            }
-            else
-            {
+                haLlegado = true;
                 return;
             }
+
+            // Mover el objeto hacia el destino
+            transform.position += direccion.normalized * velocidad * Time.deltaTime;
         }
+    }
 
-        // Dirección hacia el destino
-        Vector3 direccion = puntoDestino.position - transform.position;
-
-        if (direccion.magnitude <= distanciaMinima)
+    // Método que se llama cuando el jugador entra en el collider
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player")) // Asegúrate de que el jugador tenga el tag "Player"
         {
-            haLlegado = true;
-            return;
-        }
+            // Desactivamos la zona de activación para que no vuelva a ser activada
+            zonaDeActivacion.enabled = false;
 
-        transform.position += direccion.normalized * velocidad * Time.deltaTime;
+            // Iniciar el movimiento inmediatamente
+            movimientoIniciado = true;
+        }
     }
 }
