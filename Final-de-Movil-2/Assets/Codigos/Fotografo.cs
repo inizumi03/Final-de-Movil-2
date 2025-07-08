@@ -6,7 +6,6 @@ using TMPro;
 public class Fotografo : MonoBehaviour
 {
     [Header("Puntaje")]
-    // Ya no se usa este valor fijo, pero lo dejo por si quieres un valor por defecto
     public int puntosPorFoto = 10;
     private int puntajeTotal = 0;
 
@@ -16,6 +15,7 @@ public class Fotografo : MonoBehaviour
 
     [Header("Tag de los objetos fotografiables")]
     public string tagHeroe = "Heroe";
+    public string tagObjetoEspecial = "ObjetoEspecial"; // Tag para objetos especiales
 
     [Header("Audio")]
     public AudioSource audioFoto;
@@ -26,10 +26,13 @@ public class Fotografo : MonoBehaviour
     // Lista de héroes fotografiados para no contar puntos varias veces
     private HashSet<HeroeFotografiable> heroesFotografiados = new HashSet<HeroeFotografiable>();
 
+    [Header("Rango de la cámara")]
+    public float rangoDeVision = 100f;  // El rango de visión de la cámara (en unidades)
+
     public void IntentarTomarFoto()
     {
         Ray rayo = new Ray(transform.position, transform.forward);
-        if (Physics.Raycast(rayo, out RaycastHit impacto, 100f))
+        if (Physics.Raycast(rayo, out RaycastHit impacto, rangoDeVision))  // Usar rangoDeVision
         {
             if (impacto.collider.CompareTag(tagHeroe))
             {
@@ -46,6 +49,14 @@ public class Fotografo : MonoBehaviour
             else
             {
                 Debug.Log("No estás mirando a un héroe.");
+            }
+
+            // Comprobar si un objeto especial está en el campo de visión cuando se toma la foto
+            if (impacto.collider.CompareTag(tagObjetoEspecial))
+            {
+                // Si el objeto especial está en el campo de visión, restar puntos
+                RestarPuntos(5);  // Restamos 5 puntos (ajustar según lo necesario)
+                Debug.Log("Se ha fotografiado un objeto especial. Puntos restados.");
             }
         }
         else
@@ -101,6 +112,13 @@ public class Fotografo : MonoBehaviour
     public int ObtenerPuntaje()
     {
         return puntajeTotal;
+    }
+
+    // Método para restar puntos al fotógrafo
+    public void RestarPuntos(int puntos)
+    {
+        puntajeTotal -= puntos;
+        ActualizarTextoPuntaje();
     }
 }
 

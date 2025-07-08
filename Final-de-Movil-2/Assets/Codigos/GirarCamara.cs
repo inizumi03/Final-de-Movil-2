@@ -10,18 +10,23 @@ public class GirarCamara : MonoBehaviour
     public float suavizadoCentrado = 5f;
 
     [Header("Bloquear ejes de rotación")]
-    public bool bloquearEjeX = false;
-    public bool bloquearEjeY = false;
-
-    [Header("Porcentaje de pantalla para detectar toques en los bordes")]
-    [Range(0f, 0.5f)] public float anchoBorde = 0.2f; // 20 % a cada lado
-    [Range(0f, 0.5f)] public float altoBorde = 0.2f;  // 20 % arriba y abajo
+    public bool bloquearEjeX = false;  // Bloquear rotación en el eje X
+    public bool bloquearEjeY = false;  // Bloquear rotación en el eje Y
 
     [Header("Referencia al jugador")]
     public Transform jugador; // Asigna el jugador desde el Inspector
 
+    [Header("Joystick")]
+    public FixedJoystick joystick; // Asignar el joystick desde el Inspector
+
     private Quaternion rotacionObjetivo;
     private bool centrandoCamara = false;
+
+    private float rotacionX = 0f; // Variable para almacenar la rotación en el eje X
+    private float rotacionY = 0f; // Variable para almacenar la rotación en el eje Y
+
+    private float threshold = 0.1f; // Umbral para detectar si el joystick está en la posición neutral
+    private bool joystickEnMovimiento = false; // Variable para detectar si el joystick está en movimiento
 
     void Start()
     {
@@ -32,53 +37,37 @@ public class GirarCamara : MonoBehaviour
     {
         centrandoCamara = false; // Reiniciar cada frame
 
-        foreach (Touch toque in Input.touches)
+        // Obtener el valor del joystick
+        float ejeX = joystick.Horizontal; // Valor horizontal (izquierda/derecha)
+        float ejeY = joystick.Vertical;   // Valor vertical (arriba/abajo)
+
+        // Solo rotar si el joystick se mueve fuera de la posición neutral
+        if (Mathf.Abs(ejeX) > threshold || Mathf.Abs(ejeY) > threshold)
         {
-            if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject(toque.fingerId))
-                continue;
+            joystickEnMovimiento = true; // El joystick está en movimiento
 
-            Vector2 posicion = toque.position;
-            float ancho = Screen.width;
-            float alto = Screen.height;
-
-            bool enBordeDerecho = posicion.x > ancho * (1f - anchoBorde);
-            bool enBordeIzquierdo = posicion.x < ancho * anchoBorde;
-            bool enBordeSuperior = posicion.y > alto * (1f - altoBorde);
-            bool enBordeInferior = posicion.y < alto * altoBorde;
-
-            bool estaEnBordeHorizontal = enBordeDerecho || enBordeIzquierdo;
-            bool estaEnBordeVertical = enBordeSuperior || enBordeInferior;
-            bool enCentro = !estaEnBordeHorizontal && !estaEnBordeVertical;
-
-            if ((toque.phase == TouchPhase.Stationary || toque.phase == TouchPhase.Moved) && !enCentro)
+            // Aplicar la rotación solo en los ejes no bloqueados
+            if (!bloquearEjeY)
             {
-                Vector3 rotacion = Vector3.zero;
-
-                if (!bloquearEjeY)
-                {
-                    if (enBordeDerecho) rotacion.y = 1f;
-                    if (enBordeIzquierdo) rotacion.y = -1f;
-                }
-
-                if (!bloquearEjeX)
-                {
-                    if (enBordeSuperior) rotacion.x = -1f;
-                    if (enBordeInferior) rotacion.x = 1f;
-                }
-
-                transform.Rotate(rotacion * velocidadRotacion * Time.deltaTime, Space.Self);
-                rotacionObjetivo = transform.rotation;
+                rotacionY += ejeX;  // La rotación en Y depende del eje horizontal del joystick
             }
 
-            // Centrado con toque mantenido en el centro
-            if ((toque.phase == TouchPhase.Stationary) && enCentro && jugador != null)
+            if (!bloquearEjeX)
             {
-                rotacionObjetivo = Quaternion.Euler(0f, jugador.eulerAngles.y, 0f);
-                centrandoCamara = true;
+                rotacionX -= ejeY; // La rotación en X depende del eje vertical del joystick (invertido)
+                rotacionX = Mathf.Clamp(rotacionX, -90f, 90f); // Limitar la rotación para evitar que gire más de 90 grados hacia arriba o abajo
             }
+
+            // Aplicar la rotación final en la cámara
+            transform.rotation = Quaternion.Euler(rotacionX, rotacionY, 0f);
+        }
+        else if (joystickEnMovimiento)  // Si el joystick se ha soltado y estaba en movimiento
+        {
+            joystickEnMovimiento = false; // El joystick ya no está en movimiento
+            rotacionObjetivo = Quaternion.Euler(rotacionX, rotacionY, 0f); // Mantener la rotación en la última posición
         }
 
-        // Aplicar rotación suavizada
+        // Aplicar rotación suavizada si se está centrando la cámara
         if (centrandoCamara)
         {
             transform.rotation = Quaternion.Lerp(transform.rotation, rotacionObjetivo, Time.deltaTime * suavizadoCentrado);

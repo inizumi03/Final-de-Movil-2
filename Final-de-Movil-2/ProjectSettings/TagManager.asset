@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Heroe
   - Desviacion
+  - ObjetoEspecial
   layers:
   - Default
   - TransparentFX
